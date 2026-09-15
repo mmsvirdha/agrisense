@@ -1,0 +1,5 @@
+# Training/inference deps for the YOLO ripeness model.
+# Kept separate from the main app's requirements.txt so a classical-CV-only
+# deployment doesn't need to install PyTorch.
+ultralytics>=8.2
+roboflow>=1.1          # optional — only needed if you use the Roboflow SDK to pull a dataset

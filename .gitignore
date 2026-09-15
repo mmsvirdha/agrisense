@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# YOLO training artifacts — large binaries, don't commit these
+yolo/dataset/train/
+yolo/dataset/valid/
+yolo/dataset/test/
+yolo/dataset/*.yaml
+yolo/runs/
+yolo/frames/
+yolo/*.pt
+*.pt
+
+# Runtime scratch
+/tmp/
+__MACOSX/
+.DS_Store
+
+# Uploaded / generated media — do not commit
+*.mp4
+*.avi
+*.mov
+*.mkv
+*_annotated.mp4
+*_annotated.png
+
+# Scan history / outputs
+agrisense_outputs/

@@ -1,0 +1,10 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
+opencv-python-headless>=4.9
+numpy>=1.26
+pillow>=10.0
+
+# Optional: only needed if you run with AGRISENSE_ENGINE=yolo (see yolo/README_YOLO.md).
+# Kept out of the base install so a classical-CV-only deployment doesn't need PyTorch.
+# pip install -r yolo/requirements-yolo.txt

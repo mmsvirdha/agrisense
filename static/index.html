@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AGRISENSE — Crop Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark">A</span>
+      <span class="wordmark">Agrisense</span>
+    </div>
+    <span class="tagline">Crop intelligence · classical CV prototype</span>
+  </div>
+</header>
+
+<main class="workbench">
+
+  <!-- ============ LEFT RAIL ============ -->
+  <aside class="rail">
+    <div class="rail-head">
+      <h1>See what's in the frame</h1>
+      <p class="lede">
+        Drop a photo or a short clip. Agrisense finds round fruit, reads
+        maturity color, and gives each detection a harvest priority.
+      </p>
+    </div>
+
+    <div class="mode-switch" role="tablist">
+      <button class="mode-btn active" data-mode="image" role="tab">
+        <span class="mode-icon">◉</span> Photo
+      </button>
+      <button class="mode-btn" data-mode="video" role="tab">
+        <span class="mode-icon">▶</span> Video
+      </button>
+    </div>
+
+    <form id="upload-form">
+      <label class="dropzone" id="dropzone" for="file-input">
+        <input type="file" id="file-input" accept="image/*" hidden />
+        <div class="dropzone-inner">
+          <div class="dz-glyph">↑</div>
+          <span class="dz-title" id="dz-title">Drop a photo here</span>
+          <span class="dz-sub">or click to choose a file</span>
+        </div>
+      </label>
+
+      <div class="filename" id="filename" hidden></div>
+
+      <div class="field-label-row">
+        <label for="field-label">Field / crop label</label>
+        <input type="text" id="field-label" placeholder="e.g. Strawberry Bed 01" autocomplete="off" />
+        <span class="field-hint">Groups scans for history &amp; trends</span>
+      </div>
+
+      <details class="sensitivity">
+        <summary>Detection sensitivity</summary>
+        <div class="slider-row">
+          <label for="min-area">Minimum fruit size</label>
+          <input type="range" id="min-area" min="200" max="8000" step="100" value="900" />
+          <span class="slider-value" id="min-area-value">900 px²</span>
+        </div>
+        <div class="slider-row">
+          <label for="min-circularity">Roundness required</label>
+          <input type="range" id="min-circularity" min="0.2" max="0.9" step="0.05" value="0.45" />
+          <span class="slider-value" id="min-circularity-value">0.45</span>
+        </div>
+        <p class="slider-hint">
+          Lower size if small fruit are missed. Raise roundness if
+          background clutter is being picked up.
+        </p>
+      </details>
+
+      <button type="submit" class="analyze-btn" id="analyze-btn" disabled>
+        <span>Analyze</span>
+        <span class="analyze-arrow">→</span>
+      </button>
+    </form>
+
+    <details class="caveat">
+      <summary>How this reading works</summary>
+      <p>
+        Detection uses HSV color segmentation and contour shape checks —
+        not a trained neural network. It works best on clear, close-up shots
+        of round fruit against a plain background. Maturity is a peel-color
+        estimate; the health flag only signals dark or uneven patches.
+        Neither is a species ID or disease diagnosis.
+      </p>
+    </details>
+  </aside>
+
+  <!-- ============ MAIN CANVAS ============ -->
+  <section class="canvas-area">
+
+    <!-- Idle placeholder -->
+    <div class="placeholder" id="placeholder">
+      <div class="placeholder-glyph">◐</div>
+      <p class="placeholder-title">Waiting for a scan</p>
+      <p class="placeholder-sub">Analysis results, KPI tiles, and grouped detections will show up here.</p>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading" id="loading" hidden>
+      <div class="loading-grid">
+        <div class="skeleton skeleton-hero"></div>
+        <div class="skeleton skeleton-kpi"></div>
+        <div class="skeleton skeleton-kpi"></div>
+        <div class="skeleton skeleton-kpi"></div>
+        <div class="skeleton skeleton-kpi"></div>
+      </div>
+      <div class="loading-row">
+        <div class="spinner"></div>
+        <span id="loading-text">Analyzing…</span>
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div class="result" id="result" hidden>
+
+      <!-- Hero card -->
+      <section class="hero-card">
+        <div class="hero-image-wrap">
+          <img id="result-image" alt="Annotated result" />
+          <div class="hero-badges">
+            <span class="engine-badge" id="engine-badge" hidden></span>
+          </div>
+        </div>
+
+        <div class="hero-summary">
+          <div class="hero-score-wrap">
+            <svg class="hero-ring" viewBox="0 0 120 120">
+              <circle class="ring-bg" cx="60" cy="60" r="52" />
+              <circle class="ring-fg" id="hero-ring-fg" cx="60" cy="60" r="52" />
+            </svg>
+            <div class="hero-score-inner">
+              <span class="hero-score-value" id="hero-readiness">–</span>
+              <span class="hero-score-label">readiness</span>
+            </div>
+          </div>
+          <div class="hero-meta">
+            <div class="hero-meta-label" id="hero-estimate-label">Waiting for scan…</div>
+            <p class="hero-meta-rec" id="hero-recommendation">—</p>
+            <div class="hero-delta" id="hero-delta" hidden></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- KPI strip -->
+      <section class="kpi-strip" id="stat-strip"></section>
+
+      <!-- Color breakdown -->
+      <section class="chip-strip" id="color-breakdown"></section>
+
+      <!-- Intel cards -->
+      <section class="intel-grid" id="intel-grid" hidden>
+        <div class="intel-card" id="harvest-card"></div>
+        <div class="intel-card" id="health-card"></div>
+        <div class="intel-card" id="risk-card"></div>
+      </section>
+
+      <!-- Compare panel -->
+      <section class="compare-panel" id="compare-panel" hidden></section>
+
+      <!-- Video download -->
+      <section class="download-row" id="download-row" hidden>
+        <a id="download-link" class="download-btn" download>
+          <span>Download annotated video</span>
+          <span class="download-arrow">↓</span>
+        </a>
+        <span class="download-hint">MP4 with boxes on every frame.</span>
+      </section>
+
+      <!-- Timeline (video) -->
+      <section class="video-timeline" id="video-timeline" hidden></section>
+
+      <!-- Priority-grouped detections -->
+      <section class="detections-panel">
+        <header class="detections-header">
+          <h2>Detections</h2>
+          <div class="detections-filters" id="detections-filters">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="harvest">Harvest</button>
+            <button class="filter-btn" data-filter="monitor">Monitor</button>
+            <button class="filter-btn" data-filter="attention">Attention</button>
+          </div>
+        </header>
+
+        <div id="priority-groups" class="priority-groups"></div>
+      </section>
+
+      <!-- History -->
+      <section class="history-panel" id="history-panel" hidden>
+        <button type="button" class="history-toggle" id="history-toggle">
+          <span>View scan history for this field</span>
+          <span class="history-chevron">▾</span>
+        </button>
+        <div class="history-body" id="history-body" hidden></div>
+      </section>
+
+    </div>
+
+    <div class="error-box" id="error-box" hidden></div>
+  </section>
+
+</main>
+
+<script src="/app.js"></script>
+</body>
+</html>
