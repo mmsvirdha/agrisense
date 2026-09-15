@@ -24,6 +24,10 @@ __MACOSX/
 *.avi
 *.mov
 *.mkv
+*.jpeg
+*.jpg
+!sample_media/*.jpg
+*.png
 *_annotated.mp4
 *_annotated.png
 
