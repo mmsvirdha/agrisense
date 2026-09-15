@@ -289,8 +289,8 @@ Suggested next milestones, in order:
 - **Video pipeline:** OpenCV VideoWriter (MP4V codec), optionally re-encoded
   to H.264 via ffmpeg if installed
 
+
+
 ## License
 
-MIT
-
-
+MIT — see [LICENSE](LICENSE) for details.
